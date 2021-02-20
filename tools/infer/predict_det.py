@@ -186,12 +186,13 @@ class TextDetector(object):
 
         post_result = self.postprocess_op(preds, shape_list)
         dt_boxes = post_result[0]['points']
+        scores = post_result[0]['scores']
         if self.det_algorithm == "SAST" and self.det_sast_polygon:
             dt_boxes = self.filter_tag_det_res_only_clip(dt_boxes, ori_im.shape)
         else:
             dt_boxes = self.filter_tag_det_res(dt_boxes, ori_im.shape)
         elapse = time.time() - starttime
-        return dt_boxes, elapse
+        return dt_boxes, scores
 
 
 if __name__ == "__main__":
