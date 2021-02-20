@@ -132,10 +132,10 @@ class TextDetector(object):
         img_height, img_width = image_shape[0:2]
         dt_boxes_new = []
         for box in dt_boxes:
-            box = self.order_points_clockwise(box)
-            box = self.clip_det_res(box, img_height, img_width)
-            rect_width = int(np.linalg.norm(box[0] - box[1]))
-            rect_height = int(np.linalg.norm(box[0] - box[3]))
+            box['points'] = self.order_points_clockwise(box['points'])
+            box['points'] = self.clip_det_res(box['points'], img_height, img_width)
+            rect_width = int(np.linalg.norm(box['points'][0] - box['points'][1]))
+            rect_height = int(np.linalg.norm(box['points'][0] - box['points'][3]))
             if rect_width <= 3 or rect_height <= 3:
                 continue
             dt_boxes_new.append(box)
@@ -146,7 +146,7 @@ class TextDetector(object):
         img_height, img_width = image_shape[0:2]
         dt_boxes_new = []
         for box in dt_boxes:
-            box = self.clip_det_res(box, img_height, img_width)
+            box['points'] = self.clip_det_res(box['points'], img_height, img_width)
             dt_boxes_new.append(box)
         dt_boxes = np.array(dt_boxes_new)
         return dt_boxes
@@ -185,14 +185,13 @@ class TextDetector(object):
             raise NotImplementedError
 
         post_result = self.postprocess_op(preds, shape_list)
-        dt_boxes = post_result[0]['points']
-        scores = post_result[0]['scores']
+        dt_boxes = [{'points': point, 'scores': score} for point, score in list(zip(post_result[0]['points'], post_result[0]['scores']))]
         if self.det_algorithm == "SAST" and self.det_sast_polygon:
             dt_boxes = self.filter_tag_det_res_only_clip(dt_boxes, ori_im.shape)
         else:
             dt_boxes = self.filter_tag_det_res(dt_boxes, ori_im.shape)
         elapse = time.time() - starttime
-        return dt_boxes, scores
+        return dt_boxes
 
 
 if __name__ == "__main__":
